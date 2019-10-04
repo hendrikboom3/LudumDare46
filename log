@@ -1,0 +1,20 @@
+# So.  Brainstorming.
+
+## Fri Oct  4 18:43:07 EDT 2019
+I sould start with nothning.  My orienteering game "wander" (that I wrote back many years in OCaml, a language that seems to be in vogue among some financial institutions and among theorem-provers in costructive mathematics) would fit the bill.  You start with nothing.  You run around and find eight markers (by running through them) and then you're done.
+
+You end up with nothing.
+
+Not quite.  You do start with a map.  It has all the markers on it, and the landscape, but it doesnt tell you where you are on it.  So that's the first thing to find out.
+
+I guess you could start out without the map.  Maybe find it along the way?  Seem difficult.  One of the real hallmarks of that game was that it was extremely easy to get lost, even *with* the map.
+
+I programmed that game on a square grid.
+
+Now my other old game-like thing was a map generator.  I didn't use it in wander, but I've always thought I wanted to use it for this game.  I didn't because I had a hard enough time with the language and openGL.  That map was also on a suaare grid.  But I might like to redo it on a triangle grid -- for no reason other than that 3D graphics technology seems to ilke triangle meshes.
+
+And I suspect that whatever I do this weekend, I'll be thinking of rewriting my orienteering game with more convincing landscape.  And if I do something else I'll find myself regretting that I didn't do this.
+
+.
+
+
