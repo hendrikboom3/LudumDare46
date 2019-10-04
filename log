@@ -15,6 +15,16 @@ Now my other old game-like thing was a map generator.  I didn't use it in wander
 
 And I suspect that whatever I do this weekend, I'll be thinking of rewriting my orienteering game with more convincing landscape.  And if I do something else I'll find myself regretting that I didn't do this.
 
-.
+
+# Fri Oct  4 18:53:31 EDT 2019
+
+The main projecte work so far would seem to be the fractal landscape generation.  I could bound the game by having it take place on an island.  I'd have to add serious amounts of water and coastline to the map generator then.  But the actual effort of walking through the map would be easier.  And the rivers would yield a natural maze.  I could even (if time permits) implement a few bridges for variety and trees to obfuscate the view.
+
+Is this getting too ambitious for a weekend?  This as well as a fractal recursive fragmentation and recombining triangular tiles?
+
+The triangle meshes could be a pair of rectangular arrays -- one for up-pointing triangles, and one for down-pointing triangles.  And originally, I had a lot of trouble with getting all the tiles to fit together properly.  But I could do some unit tests on them, which is what I eventually did with the square arrays anyway.
+
+I have a feeling that there will be fewer different special cases with triangles than with the squares I once used.
+
 
 
