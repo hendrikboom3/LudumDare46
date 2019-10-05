@@ -16,7 +16,7 @@ Now my other old game-like thing was a map generator.  I didn't use it in wander
 And I suspect that whatever I do this weekend, I'll be thinking of rewriting my orienteering game with more convincing landscape.  And if I do something else I'll find myself regretting that I didn't do this.
 
 
-# Fri Oct  4 18:53:31 EDT 2019
+## Fri Oct  4 18:53:31 EDT 2019
 
 The main projecte work so far would seem to be the fractal landscape generation.  I could bound the game by having it take place on an island.  I'd have to add serious amounts of water and coastline to the map generator then.  But the actual effort of walking through the map would be easier.  And the rivers would yield a natural maze.  I could even (if time permits) implement a few bridges for variety and trees to obfuscate the view.
 
@@ -26,5 +26,38 @@ The triangle meshes could be a pair of rectangular arrays -- one for up-pointing
 
 I have a feeling that there will be fewer different special cases with triangles than with the squares I once used.
 
+## Fri Oct  4 19:11:43 EDT 2019
+
+Looks like I've pretty well decided what I really want to do, whether I have time or not.
+
+Time to start designing the geometry engine.
+Time to start drawing triangles.  Wish I had paper with a grid of light blue triangles.  But no, it's not worth spending time on writing a postscipt program to do that.  Better just sketch with a pencil.
 
 
+## Fri Oct  4 21:38:21 EDT 2019
+
+Went to a Greek restaurant to think.  Ever notice that pizzas seem to be better in Greek restaurants than Italian ones?  I've always wondered about that.
+
+Somehow writing diagrams and text on paper is easy to concentrate on when dining alone in a restaurant.  Someday I'll have to transcribe this into something ike SVG diagrams with text, or somehing like it to check in here.
+
+I'll be using a somewhat rectanguar array of triangles.  There may be one array with two triangles in each slot (one pointing up and one down) or two arrays of homogeneously pointing triangles -- not decided.
+
+Rivers flow along the edges of the triangles.
+
+At each fractal subdivision step, each triangle gets chopped into six wedges, and then the wedges get fused with the corresponding wedges in neighbouring triangles to make new, smaller triangles.  Each such step the number of triangles increases by a factor of three (except for edge cases).
+
+When this happens, the river flow long the edges of the bigger triangles gets to detour along the new edges of the smaller triangles.
+
+The direction of flow will be determined by a height map -- providing a height for each vertex, and for the midpoint of each edge.
+
+There will be a triangle subdivision transition that can create new river forks on occasion.
+
+How to decide which detour the flow along the sides take?  Given a triangle with two flows on its edge, each one cahn detour through the triangle, or outside it.  This gives four possibilities.  I will select one of the two arrays of triangles (or pick the triangles pointing in some chosen same direction) and in each of those triangles, make the choice randomly.
+
+There turn out to be one or two special cases  where choosing height of the vertices and edge midpoints isn't just a random interpolation.  I'll deal with those separately and make a river segment with both ends at the same height..
+
+In the long run, if time and effort permit, I can convert those horizontal bits of river into lakes.
+
+That determines the river network topology.  If time and effort permit, I can figure to draw the river segments as something other than straight lines.  But straight lines will have to do for now.
+
+.
