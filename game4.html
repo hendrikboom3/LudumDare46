@@ -4,33 +4,40 @@
     <script src="https://mdn.github.io/webgl-examples/tutorial/gl-matrix.js"></script>
     <canvas id="c"></canvas>
     miffls
+
+
     <script id="2d-vertex-shader" type="notjs">
- 
-  // an attribute will receive data from a buffer
-  attribute vec4 a_position;
- 
-  // all shaders have a main function
-  void main() {
- 
-    // gl_Position is a special variable a vertex shader
-    // is responsible for setting
-    gl_Position = a_position;
-  }
+      
+      // an attribute will receive data from a buffer
+      attribute vec4 a_position;
+      
+      // all shaders have a main function
+      void main() {
+	  
+	  // gl_Position is a special variable a vertex shader
+	  // is responsible for setting
+	  gl_Position = a_position;
+      }
  
     </script>
+
+
     <script id="2d-fragment-shader" type="notjs">
 
-  // fragment shaders don't have a default precision so we need
-  // to pick one. mediump is a good default
-  precision mediump float;
- 
-  void main() {
-    // gl_FragColor is a special variable a fragment shader
-    // is responsible for setting
-    gl_FragColor = vec4(1, 0.0, 1.0, 1.0); // return redish-purple
-  }
- 
+      // fragment shaders don't have a default precision so we need
+      // to pick one. mediump is a good default
+      precision mediump float;
+      uniform vec4 u_colour;
+      void main() {
+	  // gl_FragColor is a special variable a fragment shader
+	  // is responsible for setting
+// WAS:	  gl_FragColor = vec4(1, 0.0, 1.0, 1.0); // return redish-purple
+	  gl_FragColor = vec4(u_colour.r, u_colour.g, u_colour.b, u_colour.a); // return redish-purple
+      }
+      
     </script>
+
+
     
     <script>
 
@@ -91,7 +98,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
       
           // three 2d points
 
-	  function triangle(positions){
+      function triangle(positions, colour){
 	      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 	      /* Now that allegedly used the bind point.
 	       But I see mo mention of anything that I see as a bind point in the code.
@@ -122,6 +129,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	      var offset = 0;        // start at the beginning of the buffer
 	      gl.vertexAttribPointer(
 		  positionAttributeLocation, size, type, normalize, stride, offset)
+	      var colourloc = gl.getUniformLocation(program, "u_colour");
 	      
 	      /*A hidden part of gl.vertexAttribPointer is that it binds the current ARRAY_BUFFER to the attribute. In other words now this attribute is bound to positionBuffer. That means we're free to bind something else to the ARRAY_BUFFER bind point. The attribute will continue to use positionBuffer.
 	       */
@@ -131,26 +139,30 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	      var primitiveType = gl.TRIANGLES;
 	      var offset = 0;
 	      var count = 3;
-	      gl.drawArrays(primitiveType, offset, count);
+// WAS	      gl.uniform4fv(offsetLoc, [1, 0, 0, 0]);
+	      gl.uniform4fv(colourloc, colour);
+	      gl.drawArrays(primitiveType, offset, count); //  ??? What's the offset about?
 	  }
 
       function draw(){
 	  gl.clearColor(0, 0, 0, 0);
 	  gl.clear(gl.COLOR_BUFFER_BIT);
 
-	  var positions = [
+	  var positions1 = [
 	      0, 0,
 	      0, 0.5,
 	      0.7, 0,
 	  ];
+	  var colour1 = [1.0, 0.0, 0.0, 1.0];
 	  var positions2 = [
 	      0, 0,
 	      0, -0.5,
 	      -0.7, 0,
 	  ];
+	  var colour2 = [0.0, 0.0, 1.0, 1.0];
 	  
-	  triangle(positions);
-	  triangle(positions2);
+	  triangle(positions1, colour1);
+	  triangle(positions2, colour2);
       }
 
       draw();

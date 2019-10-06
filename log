@@ -68,5 +68,24 @@ Maybe sleeping on it will give me some more ideas.
 I'm quite happy with my accomplishments for these four hours.  I only hope that coding will go as smoothly.
 
 
-.
 
+## Sat Oct  5 20:05:51 EDT 2019
+
+Spent the day struggling with a webgl tutorial and got it to display a rectangle, and then a triangle.  But in the tutorial I couldn't manage to identify what was general setup and what was the triangle.  I completely failed to draw a second triangle.
+
+So I found another tutorial: https://webglfundamentals.org/
+
+This one had more explanation as to what was going on.  I got to understand it a but, and I now have my own version of the tutorial's code that can draw two triangles.
+
+Definite progress.
+
+WHen I wanted to post this progress on the ldjam blog, I couldn't.  I could get it to provide a requestor for posting a new blog entry or cnceling, but clicking on the new blog entry option did noting.  Cancelling, of course, cancelled the attampt.
+
+
+
+## Sat Oct  5 23:15:39 EDT 2019
+
+I used a 'uniform' to set a colur for the triangle function.  I now draw two triangles of different colours.
+
+I just noticed I can model the entire landscape in 3D and draw it in 2D.
+That would mean I can work on the 3D modelling without having to immendiately draw my triangles in 3D.
