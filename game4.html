@@ -1,0 +1,161 @@
+<html>
+  <body>
+    initial
+    <script src="https://mdn.github.io/webgl-examples/tutorial/gl-matrix.js"></script>
+    <canvas id="c"></canvas>
+    miffls
+    <script id="2d-vertex-shader" type="notjs">
+ 
+  // an attribute will receive data from a buffer
+  attribute vec4 a_position;
+ 
+  // all shaders have a main function
+  void main() {
+ 
+    // gl_Position is a special variable a vertex shader
+    // is responsible for setting
+    gl_Position = a_position;
+  }
+ 
+    </script>
+    <script id="2d-fragment-shader" type="notjs">
+
+  // fragment shaders don't have a default precision so we need
+  // to pick one. mediump is a good default
+  precision mediump float;
+ 
+  void main() {
+    // gl_FragColor is a special variable a fragment shader
+    // is responsible for setting
+    gl_FragColor = vec4(1, 0.0, 1.0, 1.0); // return redish-purple
+  }
+ 
+    </script>
+    
+    <script>
+
+      // Now following the documentation at https://webglfundamentals.org/
+      // Allegedly WebGL from the ground up. No magic.
+      
+      // This is the init portion.
+      // I haven't made it a finction in case drawing needs these global variables
+      var canvas = document.getElementById("c");
+      var gl = canvas.getContext("webgl");
+      if(!gl) {
+	  // no webgl for yo!
+      }
+      function createShader(gl, type, source) {
+	  var shader = gl.createShader(type);
+	  gl.shaderSource(shader, source);
+	  gl.compileShader(shader);
+	  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+	  if (success) {
+              return shader;
+	  }
+	  
+	  console.log(gl.getShaderInfoLog(shader));
+	  gl.deleteShader(shader);
+      }
+
+      var vertexShaderSource = document.getElementById("2d-vertex-shader").text;
+      var fragmentShaderSource = document.getElementById("2d-fragment-shader").text;
+     
+      var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+      var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+      function createProgram(gl, vertexShader, fragmentShader) {
+	  var program = gl.createProgram();
+	  gl.attachShader(program, vertexShader);
+	  gl.attachShader(program, fragmentShader);
+	  gl.linkProgram(program);
+	  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+	  if (success) {
+              return program;
+	  }
+	  
+	  console.log(gl.getProgramInfoLog(program));
+	  gl.deleteProgram(program);
+      }
+
+      var program = createProgram(gl, vertexShader, fragmentShader);
+      var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+      var positionBuffer = gl.createBuffer();
+      /*WebGL lets us manipulate many WebGL resources on global bind points. You can think of bind points as internal global variables inside WebGL. First you bind a resource to a bind point. Then, all other functions refer to the resource through the bind point. So, let's bind the position buffer.
+
+So says the tutorial.  But what is the "bind point" resulting from the following statement?  Is is something inside the positionbuffer?
+      */
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      /* Now the tutorial says
+            Now we can put data in that buffer by referencing it through the bind point */
+
+      
+          // three 2d points
+
+	  function triangle(positions){
+	      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+	      /* Now that allegedly used the bind point.
+	       But I see mo mention of anything that I see as a bind point in the code.
+	       Hmmm. It seems that "It's using the position buffer because we bound it to the ARRAY_BUFFER bind point above."  So ARRAY_BUFFER is some kind of name for the bind point, which is hidden inside OpenGL.  Can I have only one bind point at at time?
+	      */
+	      
+	      // TODO huh?      webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+	      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	      
+	      // Clear the canvas
+	      // moved out
+	      
+	      // Tell it to use our program (pair of shaders)
+	      gl.useProgram(program);
+	      
+	      // Turn an attribute on
+	      gl.enableVertexAttribArray(positionAttributeLocation);
+	      
+	      // Bind the position buffer
+	      
+	      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	      
+	      // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+	      var size = 2;          // 2 components per iteration
+	      var type = gl.FLOAT;   // the data is 32bit floats
+	      var normalize = false; // don't normalize the data
+	      var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	      var offset = 0;        // start at the beginning of the buffer
+	      gl.vertexAttribPointer(
+		  positionAttributeLocation, size, type, normalize, stride, offset)
+	      
+	      /*A hidden part of gl.vertexAttribPointer is that it binds the current ARRAY_BUFFER to the attribute. In other words now this attribute is bound to positionBuffer. That means we're free to bind something else to the ARRAY_BUFFER bind point. The attribute will continue to use positionBuffer.
+	       */
+	      // TODO: This needs to go soewhere, not here:
+	      // attribute vec4 a_position;
+	      
+	      var primitiveType = gl.TRIANGLES;
+	      var offset = 0;
+	      var count = 3;
+	      gl.drawArrays(primitiveType, offset, count);
+	  }
+
+      function draw(){
+	  gl.clearColor(0, 0, 0, 0);
+	  gl.clear(gl.COLOR_BUFFER_BIT);
+
+	  var positions = [
+	      0, 0,
+	      0, 0.5,
+	      0.7, 0,
+	  ];
+	  var positions2 = [
+	      0, 0,
+	      0, -0.5,
+	      -0.7, 0,
+	  ];
+	  
+	  triangle(positions);
+	  triangle(positions2);
+      }
+
+      draw();
+    </script>
+    cooo, cooo
+    
+  </body>
+</html>
