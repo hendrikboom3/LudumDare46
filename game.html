@@ -1,8 +1,8 @@
 <html>
   <body>
     initial
-    <script src="https://mdn.github.io/webgl-examples/tutorial/gl-matrix.js"></script>
-    <canvas id="c"></canvas>
+
+    <canvas width = "400" height = "400" id="c"></canvas>
     miffls
 
 
@@ -98,74 +98,460 @@ So says the tutorial.  But what is the "bind point" resulting from the following
       
           // three 2d points
 
-      function triangle(positions, colour){
-	      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-	      /* Now that allegedly used the bind point.
-	       But I see mo mention of anything that I see as a bind point in the code.
-	       Hmmm. It seems that "It's using the position buffer because we bound it to the ARRAY_BUFFER bind point above."  So ARRAY_BUFFER is some kind of name for the bind point, which is hidden inside OpenGL.  Can I have only one bind point at at time?
-	      */
-	      
-	      // TODO huh?      webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-	      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-	      
-	      // Clear the canvas
-	      // moved out
-	      
-	      // Tell it to use our program (pair of shaders)
-	      gl.useProgram(program);
-	      
-	      // Turn an attribute on
-	      gl.enableVertexAttribArray(positionAttributeLocation);
-	      
-	      // Bind the position buffer
-	      
-	      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	      
-	      // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-	      var size = 2;          // 2 components per iteration
-	      var type = gl.FLOAT;   // the data is 32bit floats
-	      var normalize = false; // don't normalize the data
-	      var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-	      var offset = 0;        // start at the beginning of the buffer
-	      gl.vertexAttribPointer(
-		  positionAttributeLocation, size, type, normalize, stride, offset)
-	      var colourloc = gl.getUniformLocation(program, "u_colour");
-	      
-	      /*A hidden part of gl.vertexAttribPointer is that it binds the current ARRAY_BUFFER to the attribute. In other words now this attribute is bound to positionBuffer. That means we're free to bind something else to the ARRAY_BUFFER bind point. The attribute will continue to use positionBuffer.
-	       */
-	      // TODO: This needs to go soewhere, not here:
-	      // attribute vec4 a_position;
-	      
-	      var primitiveType = gl.TRIANGLES;
-	      var offset = 0;
-	      var count = 3;
-// WAS	      gl.uniform4fv(offsetLoc, [1, 0, 0, 0]);
-	      gl.uniform4fv(colourloc, colour);
-	      gl.drawArrays(primitiveType, offset, count); //  ??? What's the offset about?
+      function triangle(vertices, colour){
+
+	  // first remap positions to be just numbers, not an array of arrays
+
+	  positions = new Array(6);
+	  for(var i = 0; i < 3; ++i) {
+	      for(var j = 0; j < 2; ++j) { // NOTE: I'm currently ignoring z 
+		  positions[i * 2 + j] = vertices[i][j];
+	      }
 	  }
+	  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+	  /* Now that allegedly used the bind point.
+	   But I see mo mention of anything that I see as a bind point in the code.
+	   Hmmm. It seems that "It's using the position buffer because we bound it to the ARRAY_BUFFER bind point above."  So ARRAY_BUFFER is some kind of name for the bind point, which is hidden inside OpenGL.  Can I have only one bind point at at time?
+	  */
+	  
+	  // TODO huh?      webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+	  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+	  // TODO: I probably want a square canvas.
+	  
+	  
+	  // Clear the canvas
+	  // moved out
+	  
+	  // Tell it to use our program (pair of shaders)
+	  gl.useProgram(program);
+	  
+	  // Turn an attribute on
+	  gl.enableVertexAttribArray(positionAttributeLocation);
+	  
+	  // Bind the position buffer
+	  
+	  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	  
+	  // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+	  var size = 2;          // 2 components per iteration
+	  var type = gl.FLOAT;   // the data is 32bit floats
+	  var normalize = false; // don't normalize the data
+	  var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	  var offset = 0;        // start at the beginning of the buffer
+	  gl.vertexAttribPointer(
+	      positionAttributeLocation, size, type, normalize, stride, offset)
+	  var colourloc = gl.getUniformLocation(program, "u_colour");
+	  
+	  /*A hidden part of gl.vertexAttribPointer is that it binds the current ARRAY_BUFFER to the attribute. In other words now this attribute is bound to positionBuffer. That means we're free to bind something else to the ARRAY_BUFFER bind point. The attribute will continue to use positionBuffer.
+	   */
+	  // TODO: This needs to go soewhere, not here:
+	  // attribute vec4 a_position;
+	  
+	  var primitiveType = gl.TRIANGLES;
+	  var offset = 0;
+	  var count = 3;
+	  // WAS	      gl.uniform4fv(offsetLoc, [1, 0, 0, 0]);
+	  gl.uniform4fv(colourloc, colour);
+	  gl.drawArrays(primitiveType, offset, count); //  ??? What's the offset about?
+      }
 
       function draw(){
 	  gl.clearColor(0, 0, 0, 0);
 	  gl.clear(gl.COLOR_BUFFER_BIT);
 
 	  var positions1 = [
-	      0, 0,
-	      0, 0.5,
-	      0.7, 0,
+	      [0, 0],
+	      [0, 0.5],
+	      [0.7, 0],
 	  ];
 	  var colour1 = [1.0, 0.0, 0.0, 1.0];
 	  var positions2 = [
-	      0, 0,
-	      0, -0.5,
-	      -0.7, 0,
+	      [0, 0],
+	      [0, -0.5],
+	      [-0.7, 0],
 	  ];
 	  var colour2 = [0.0, 0.0, 1.0, 1.0];
 	  
 	  triangle(positions1, colour1);
-	  triangle(positions2, colour2);
-      }
+	  triangle(positions2, colour2); 
+
+	  var positions3 = [
+	      [0, 0],
+	      [0, -0.5],
+	      [-0.5, 0],
+	  ];
+	  var colour3 = [1.0, 1.0, 0.0, 1.0];
+	  triangle(positions3, colour3);
+     }
 
       draw();
+
+      function tween(p, q, f){
+	  // f of the way from p to q.
+	  // f = 1 imies return q
+	  //f = 0 imlies return p
+	  return [ p[0] * (1.0 - f) + q[0] * f,
+		   p[1] * (1.0 - f) + q[1] * f,
+		   p[2] * (1.0 - f) + q[2] * f];
+      }
+
+      function river(v0, v1, v2){
+	  // Draw river segment from v0 to v1
+	  near0 = tween(v0, v2, 0.1);
+	  near1 = tween(v1, v2, 0.1);
+	  triangle([v0, v1, near0],  [0.0, 0.0, 1.0, 1.0]);
+	  triangle([v1, near0, near1], [0.0, 0.0, 1.0, 1.0])
+      }
+
+      function draw_trigon(trigon, uppity){
+	  if (trigon === undefined){console.log("draw_trigon no trigon"); return;}
+	  if (trigon.vertices === undefined){console.log("draw_trigon no vertices"); return;}
+	  var altcolour = [0.0, 1.0, 0.0, 1.0];
+	  if(uppity) altcolour = [1.0, 1.0, 0.0, 1.0];
+	  if(trigon.water)
+	      triangle(trigon.vertices,
+		   //		   (trigon.water ? [0.0, 0.0, 1.0, 1.0] : [0.0, 1.0, 0,0, 1.0])
+		   [0.0, 0.0, 1.0, 1.0]
+		  )
+	  else triangle(trigon.vertices,
+		   //		   (trigon.water ? [0.0, 0.0, 1.0, 1.0] : [0.0, 1.0, 0,0, 1.0])
+		   altcolour
+		       );
+	  if(trigon.edges === undefined)
+	  {}
+	  else{
+	      if (trigon.edges[0])river(trigon.vertices[0], trigon.vertices[1], trigon.vertices[2]);
+	      if (trigon.edges[1])river(trigon.vertices[1], trigon.vertices[2], trigon.vertices[0]);
+	      if (trigon.edges[2])river(trigon.vertices[2], trigon.vertices[0], trigon.vertices[1]);
+	  }
+	  
+      }
+
+      function draw_mesh(up, down) {
+	  // This function draws trigons, searatd into an up array and a down array
+	  // TODO: take into account the special properties of trigons,
+	  //   such as water and rivers
+	  for(var ii = 0; ii < up.length; ++ii) {
+	      for (var jj = 0; jj < up[ii].length; ++jj){
+		  //triangle(up[ii][jj].vertices, [0.0, 1.0, 0.0, 1.0]);
+		  if( up[ii][jj] === undefined)
+		  {
+		      // console.log("mesh no up[" + ii + "][" + jj + "]");
+		  }
+		  else {draw_trigon(up[ii][jj], true)}
+	      }
+	  }
+
+	  for(var ii = 0; ii < down.length; ++ii) {
+	      for (var jj = 0; jj < down[ii].length; ++jj){
+		  if( down[ii][jj] === undefined)
+		  {
+		      // console.log("mesh no down[" + ii + "][" + jj + "]");
+		  }
+		  else draw_trigon(down[ii][jj], false);
+	      }
+	  }
+      }
+      
+//      draw_mesh(up, down);
+
+      
+      // Now make the initial triangle array
+
+      /*
+        Each triangle has three vertices
+            A vertex has x, y, and z coordinates
+	and water, which is true or false
+        and, if it is an up0triangle,
+          three edges which are in or out.
+	Vertices are numbered counterclockwise
+          from the "top" vertex
+          (or the ottom vertex of a down triangle)
+
+      */
+
+      function randbool(){return Math.random() >= 0.5; }
+
+      function transfer_rivers(up, down){
+	  for(var i = 0; i < up.length; i++){
+	      for(var j = 0; j < up[i].length; j++){
+		  if(up[i][j] === undefined){
+		  }
+		  else{
+		      if(down[i-1] === undefined || down[i-1][j] === undefined)
+		      {}
+		      else {
+			  console.log("d["+(i-1)+"]["+j+"] gets"+up[i][j].edges[0]+ " from up["+i+"]["+j+"].edges[0]");
+/*<><>*/		  down[i-1][j].edges[0] |= up[i][j].edges[0];
+			  up[i][j].edges[0] |= down[i-1][j].edges[0]
+		      }
+
+		      if(down[i] === undefined ||down[i][j+1] === undefined)
+		      {}
+		      else {
+			  down[i][j+1].edges[1] |= up[i][j].edges[1];
+			  up[i][j].edges[1] |= down[i][j+1].edges[1];
+		      }
+
+		      if(down[i] === undefined || down[i][j] === undefined){}
+		      else {
+			  down[i][j].edges[2] |= up[i][j].edges[2];
+			  up[i][j].edges[2] |= down[i][j].edges[2];
+		      }
+		  }
+	      }
+	  }
+      }
+
+      function initial_mesh(){
+	  const sqrt3 = 1.73205081;
+
+	  const gridsize = 3;
+	  var up = new Array(gridsize);
+	  var down = new Array(gridsize)
+	  for(var i = 0; i < gridsize; i++) {
+	      up[i] = new Array(3);
+	      down[i] = new Array(3);
+	      var w = 0.40; // trigon width
+	      var w2 = w / 2.0; // half trigon width
+	      var h = sqrt3 * w2; // trigon height 
+	      const left = -1.0 + (gridsize - 1) * w2;
+	      for(var j = 0; j < gridsize; j++) {
+		  up[i][j] = {
+		      vertices: [
+			  [ left + w      + i * w - j * w2, h - (j    ) * h, 0.0 ],
+			  [ left + w2     + i * w - j * w2, h - (j + 1) * h, 0.0 ],
+			  [ left + w + w2 + i * w - j * w2, h - (j + 1) * h, 0.0 ],
+		      ],
+		      edges: [false, false, false],
+		      water: false,
+		      sidle: [randbool(), randbool(), randbool()]
+		  }
+		  
+		  down[i][j] = {
+		      vertices: [
+			  [ left + w+w2   + i * w - j * w2, h - (j + 1) * h, 0.0 ],
+			  [ left + w*2.00 + i * w - j * w2, h - (j    ) * h, 0.0 ],
+			  [ left + w      + i * w - j * w2, h - (j    ) * h, 0.0 ]
+			  
+		      ],
+		      edges: [false, false, false],
+		      water: false
+		  }
+	      }
+	  }
+	  
+	  
+//	  up[0][0].edges[2] = true;
+//	  up[2][0].edges[1] = true;
+	  //	  up[1][2].edges[0] = true;
+	  up[1][1].edges[0] = true;
+	  down[0][1].edges[0] = true;
+//	  up[2][2].edges[2] = true;
+
+	  down[2][0].water = true;
+	  up[0][2].water = true;
+	  transfer_rivers(up, down);
+	  return  {up : up, down : down, icount: 3, jcount: 3};
+      }
+      //      draw_mesh(up, down);
+
+      /*
+       Mesh refinement.
+       Let's say a mesh is an object with an up and a down.
+       Calculate a new mesh.  Caller rovides an empty mesh.
+      */
+      
+      var test_mesh = initial_mesh();
+      // icount and h=jcount are the limits for subscripts on up and down.
+
+      function averagevertex(v){ // v is an array of three vertices
+
+	  return  [ (v[0][0] + v[1][0] + v[2][0]) / 3,
+		    (v[0][1] + v[1][1] + v[2][1]) / 3,
+		    (v[0][2] + v[1][2] + v[2][2]) / 3
+		  ];
+      }
+
+      function leapfrog(p, q){
+	  // Jump from p to q.
+	  // Them jump the same distance to r.
+	  // return r.
+	  return  [ q[0]*2 - p[0],
+		    q[1]*2 - p[1],
+		    q[2]*2 - p[2]
+		  ]
+      }
+      
+      function refine(old){
+	  // old is the old mesh, new will be the new mesh.
+
+	  var mesh = new Object();
+	  var icount = 2 + old.icount + old.jcount;
+	  var jcount = 1 + old.icount + 2 * old.jcount;
+	  var up = new Array(icount)
+	  var down = new Array(icount)
+	  for(var ii = 0; ii < icount; ++ii){
+	      up[ii] = new Array(jcount);
+	      down[ii] = new Array(jcount);
+	  }
+	  console.log("new limits " + icount + " " + jcount)
+	  for(var i = 0; i < old.icount; ++i) {
+	      for(var j = 0; j < old.jcount; j++){
+		  oldtre = old.up[i][j];
+		  if(oldtre === undefined){
+		      // mising entry -- the arrays aren't full.
+		  }
+		  else {
+		      centre = averagevertex(oldtre.vertices);
+
+		      var a = 0, b = old.icount - 1;
+		      
+		      var ii = a + i + 2*j;
+		      var jj = b - i + j;
+		      
+		      
+		      /* Need 0 <= ii < icount
+		       .      0 <= jj < jcount
+		       . for all 0 <= i < old.icount
+		       . for all 0 <= j < old,jcount
+		       . This determines\d a and b for the definitions of ii and jj.
+		      */
+		      
+		      if(up[ii] === undefined)
+		      { console.log("up[" + ii + "] undefined for i " + i + " j " + j)
+		      } else{
+			  up  [ii][    jj     ] = new Object();
+			  down[ii][    jj + 1 ] = new Object;
+			  up  [ii][    jj     ].sidle =
+			      [randbool(), randbool(), randbool()]
+			  
+			  up  [ii][    jj     ].vertices = new Array(3);
+			  up  [ii][    jj     ].vertices[2] = centre;
+			  up  [ii][    jj     ].vertices[0] = oldtre.vertices[0];
+			  up  [ii][    jj     ].vertices[1] =
+			      leapfrog(oldtre.vertices[2], centre);
+			  
+			  down[ii][    jj + 1 ].vertices = new Array(3);
+			  down[ii][    jj + 1 ].vertices[0] = oldtre.vertices[1];
+			  down[ii][    jj + 1 ].vertices[1] = centre;
+			  down[ii][    jj + 1 ].vertices[2] =
+			      leapfrog(oldtre.vertices[2], centre);
+			  down[ii][    jj + 1 ].sidle = new Array(3);
+
+			  up[ii][jj].edges = [false, false, false];
+			  down[ii][jj + 1].edges = [false, false, false];
+			  if(oldtre.edges[0]){
+			      if(oldtre.sidle[0])
+			      { up[ii][jj].edges[2] = true;
+				down[ii][jj + 1].edges[0] = true;
+			      }
+			      else{
+				  up[ii][jj].edges[0] = true;
+				  down[ii][jj + 1].edges[2] = true;
+			      }
+			  }
+		      }
+		      
+		      void up[ii + 1];
+		      if(up[ii + 1] === undefined)
+		      {console.log("up[" + ii + " + 1] undefined for i " + i + " j " + j);}
+		      else{
+			  up  [ii + 1][jj + 1 ] = new Object();
+			  down[ii + 1][jj + 1 ] = new Object;
+			  up  [ii + 1][jj + 1 ].sidle =
+			      [randbool(), randbool(), randbool()]
+			  
+			  up  [ii + 1][jj + 1 ].vertices = new Array(3);
+			  up  [ii + 1][jj + 1 ].vertices[0] = centre;
+			  up  [ii + 1][jj + 1 ].vertices[1] = oldtre.vertices[1];
+			  up  [ii + 1][jj + 1 ].vertices[2] =
+			      leapfrog(oldtre.vertices[0], centre);
+			  
+			  down[ii + 1][jj + 1 ].vertices = new Array(3);
+			  down[ii + 1][jj + 1 ].vertices[1] = oldtre.vertices[2];
+			  down[ii + 1][jj + 1 ].vertices[2] = centre;
+			  down[ii + 1][jj + 1 ].vertices[0] =
+			      leapfrog(oldtre.vertices[0], centre);
+			  down[ii + 1][jj + 1 ].sidle = new Array(3);			  
+			  up[ii + 1][jj + 1].edges = [false, false, false];
+			  down[ii + 1][jj + 1].edges =  [false, false, false];
+			  if(oldtre.edges[1]){
+			      if(oldtre.sidle[1])
+			      { up[ii + 1][jj + 1].edges[0] = true;
+				down[ii + 1][jj + 1].edges[1] = true;
+			      }
+			      else{
+				  up[ii + 1][jj + 1].edges[1] = true;
+				  down[ii + 1][jj + 1].edges[0] = true;
+			      }
+			  }
+			  
+			  up  [ii + 1][jj     ] = new Object();
+			  down[ii    ][jj     ] = new Object;
+			  up  [ii + 1][jj     ].sidle =
+			      [randbool(), randbool(), randbool()]
+			  up  [ii + 1][jj     ].vertices = new Array(3);
+			  up  [ii + 1][jj     ].vertices[1] = centre;
+			  up  [ii + 1][jj     ].vertices[2] = oldtre.vertices[2];
+			  up  [ii + 1][jj     ].vertices[0] =
+			      leapfrog(oldtre.vertices[1], centre);
+			  // console.log("try down " + ii + " " + jj);
+			  void down;
+			  // console.log("first length ", down.length);
+			  void down[ii];
+			  // console.log("down[ii]", down[ii]);
+			  // console.log("second length ", down[ii].length);
+			  void down[ii, jj];
+			  // console.log("down[ii, jj] ", down[ii][jj]);
+			  void down[ii, jj].vertices;
+			  down[ii    ][jj     ].vertices = new Array(3);
+			  down[ii    ][jj     ].vertices[2] = oldtre.vertices[0];
+			  down[ii    ][jj     ].vertices[0] = centre;
+			  down[ii    ][jj     ].vertices[1] =
+			      leapfrog(oldtre.vertices[1], centre);;
+			  down[ii    ][jj     ].sidle = new Array(3);
+
+			  up[ii + 1][jj].edges =  [false, false, false];
+			  down[ii][jj].edges =  [false, false, false];
+
+			  if(oldtre.edges[2]){
+			      if(oldtre.sidle[1])
+			      { up[ii + 1][jj].edges[1] = true;
+				down[ii][jj].edges[2] = true;
+			      }
+			      else{
+				  up[ii + 1][jj].edges[2] = true;
+				  down[ii][jj].edges[1] = true;
+			      }
+			  }
+			  
+		      }
+
+		      
+		  }
+	      }
+	  }
+
+	  transfer_rivers(up, down);
+
+	  return {up : up, down : down, icount : icount, jcount : jcount};
+
+      }
+
+      
+      var refined_mesh = test_mesh;
+      refined_mesh = refine(refined_mesh);
+      if(refined_mesh.up[0] === undefined)
+      { console.log("refined_mesh[0] undefined");}
+      else{
+	  draw_trigon(refined_mesh.up[0][1]);
+      }
+//      draw_trigon(refined_mesh.up[1][1]);
+//    draw_trigon(refined_mesh.up[2,2]);
+//      draw_trigon(refined_mesh.up[3,3]);
+     draw_mesh(refined_mesh.up, refined_mesh.down);
     </script>
     cooo, cooo
     

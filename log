@@ -89,3 +89,21 @@ I used a 'uniform' to set a colur for the triangle function.  I now draw two tri
 
 I just noticed I can model the entire landscape in 3D and draw it in 2D.
 That would mean I can work on the 3D modelling without having to immediately draw my triangles in 3D.
+
+
+## Sun Oct  6 18:53:38 EDT 2019
+
+It is now drawing river segments.  It doesn't look like much yet because the test map is completely random, and the river segments aren't even connected.  And something is wrong with the aspect ratio.
+
+Drawing a right-angled 45 degree triangle is OK, so I've miscalculation the triangle coordinates.
+
+
+# Mon Oct  7 12:44:56 EDT 2019
+
+Well, landscape generation is well on its way.
+I have maaged to do the geometric art of the fractal refinement.
+There still remains the rivers.  And the height map.
+I now figure I'll have the landscape generates completely by the end of the ludum dare, but I won't have the interaction -- I won't have the game.
+
+
+
