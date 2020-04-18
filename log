@@ -1,0 +1,37 @@
+New Ludum Dare.
+
+Old broken landscape generator.
+
+Am trying for debugging to change the colours of the triangles.
+This is a test to see if the triangles have the proper orientation.
+Each will have corners with colours red, green, blue.  All the up triangles in the map should have these colurs in the same orientationm and similarly all the down triangles.  Where the up triangles and the down triangles meet, they should have the same colours but running in the opposite direction; e.g, along the edge of the up triagle going from red to green, the sme edge in the down triangle should go from green to red.
+
+Put in code to do this, and now everything is black.  I got it wrong.
+
+I am following
+    simple_model_render_03.js
+on the tutorial
+    http://learnwebgl.brown37.net/rendering/render_example_03.html
+
+just noticed convention.
+Shader attributes have names starting with "a_".
+Shader unifirms have names starting with "u_".
+This seems to be uniform across different opengl and webgl tutorials.
+I think it may be just a coding convention to keep the progrmmer sane.
+However, my shader used a uniform instead of an attribute, but the javascript code now uses an attribute.
+
+Giving up on uniformly interpolated colours.
+
+Will rename triantle to trianglet and make new triangle that has trianglet colur its corners.
+
+Sat Apr 18 10:16:59 EDT 2020:
+
+Passed the orientation test.  Have to remember that subscripting a matrix in Javascript is done m[i][j], not m[i,j].
+
+Now the location test.  Done by choosing colours for triabnges base on their array index.  There should be a uniform gradation of colours on the triangles on the diplay.
+
+at Apr 18 10:46:45 EDT 2020
+
+It passes the locatino test.
+So what could be screwing up my rives?
+
