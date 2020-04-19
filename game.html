@@ -1,4 +1,6 @@
 <html>
+  <head> <meta charset="UTF-8">
+  </head>
   <body>
     initial
 
@@ -40,12 +42,15 @@
 
     
     <script>
+      var debug_orientation = false;
+      var debug_location = false;
+      var test_rivers = false;
 
       // Now following the documentation at https://webglfundamentals.org/
       // Allegedly WebGL from the ground up. No magic.
       
       // This is the init portion.
-      // I haven't made it a finction in case drawing needs these global variables
+      // I haven't made it a function in case drawing needs these global variables
       var canvas = document.getElementById("c");
       var gl = canvas.getContext("webgl");
       if(!gl) {
@@ -98,7 +103,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
       
           // three 2d points
 
-      function triangle(vertices, colour){
+      function trianglet(vertices, colour){
 
 	  // first remap positions to be just numbers, not an array of arrays
 
@@ -108,10 +113,15 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 		  positions[i * 2 + j] = vertices[i][j];
 	      }
 	  }
+
 	  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
 	  /* Now that allegedly used the bind point.
-	   But I see mo mention of anything that I see as a bind point in the code.
-	   Hmmm. It seems that "It's using the position buffer because we bound it to the ARRAY_BUFFER bind point above."  So ARRAY_BUFFER is some kind of name for the bind point, which is hidden inside OpenGL.  Can I have only one bind point at at time?
+	     But I see mo mention of anything that I see as a bind point in the code.
+	     Hmmm.
+	     It seems that "It's using the position buffer because we bound it to the ARRAY_BUFFER bind point above."
+	     So ARRAY_BUFFER is some kind of name for the bind point, which is hidden inside OpenGL.
+	     Can I have only one bind point at at time?
 	  */
 	  
 	  // TODO huh?      webglUtils.resizeCanvasToDisplaySize(gl.canvas);
@@ -156,7 +166,30 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	  gl.drawArrays(primitiveType, offset, count); //  ??? What's the offset about?
       }
 
+      function triangle(vertices, colour){
+	  trianglet(vertices, colour);
+	  if(debug_orientation || debug_location){
+	      for(var c = 0; c<3; c++) { // the three triangle corners
+		  var v = [[0,0],[0,0],[0,0],];
+		  for (var i = 0; i < 3; i++){
+		      v[i][0] = (vertices[i][0] + vertices[c][0]) / 2.0;
+		      v[i][1] = (vertices[i][1] + vertices[c][1]) / 2.0;
+		  }
+		  var col = [0.0, 0.0, 0.0, 1.0];
+		  col[c] = 1.0;	      
+		  if(debug_orientation)
+		      trianglet(v, col);
+		  else if(debug_location)
+		      trianglet(v, colour);
+	      }
+	      
+	  }
+      
+      }
+      
+
       function draw(){
+	  // coding exercise whie I learn
 	  gl.clearColor(0, 0, 0, 0);
 	  gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -185,7 +218,6 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	  triangle(positions3, colour3);
      }
 
-      draw();
 
       function tween(p, q, f){
 	  // f of the way from p to q.
@@ -198,28 +230,32 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 
       function river(v0, v1, v2){
 	  // Draw river segment from v0 to v1
-	  near0 = tween(v0, v2, 0.1);
-	  near1 = tween(v1, v2, 0.1);
+	  var near0 = tween(v0, v2, 0.1);
+	  var near1 = tween(v1, v2, 0.1);
 	  triangle([v0, v1, near0],  [0.0, 0.0, 1.0, 1.0]);
 	  triangle([v1, near0, near1], [0.0, 0.0, 1.0, 1.0])
       }
 
-      function draw_trigon(trigon, uppity){
+
+      function draw_trigon(trigon, uppity, test1, test2){
 	  if (trigon === undefined){console.log("draw_trigon no trigon"); return;}
 	  if (trigon.vertices === undefined){console.log("draw_trigon no vertices"); return;}
 	  var altcolour = [0.0, 1.0, 0.0, 1.0];
 	  if(uppity) altcolour = [1.0, 1.0, 0.0, 1.0];
+	  // for testing, do this instead:
+	  if(debug_orientation || debug_location)
+	      altcolour = [test1 * 0, test2, 0.0, 1.0];
 	  if(trigon.water)
 	      triangle(trigon.vertices,
-		   //		   (trigon.water ? [0.0, 0.0, 1.0, 1.0] : [0.0, 1.0, 0,0, 1.0])
-		   [0.0, 0.0, 1.0, 1.0]
-		  )
+		       [0.0, 0.0, 1.0, 1.0]
+		      )
 	  else triangle(trigon.vertices,
-		   //		   (trigon.water ? [0.0, 0.0, 1.0, 1.0] : [0.0, 1.0, 0,0, 1.0])
-		   altcolour
+			altcolour
 		       );
+	  
+	  // Now add river segments
 	  if(trigon.edges === undefined)
-	  {}
+	  { console.log("trigon has no edges");}
 	  else{
 	      if (trigon.edges[0])river(trigon.vertices[0], trigon.vertices[1], trigon.vertices[2]);
 	      if (trigon.edges[1])river(trigon.vertices[1], trigon.vertices[2], trigon.vertices[0]);
@@ -228,34 +264,43 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	  
       }
 
-      function draw_mesh(up, down) {
-	  // This function draws trigons, searatd into an up array and a down array
+      function draw_mesh_up(up, ii, jj){
+ 	  if( up[ii][jj] === undefined)
+	  {
+	      console.log("mesh no up[" + ii + "][" + jj + "]");
+	  }
+	  else {draw_trigon(up[ii][jj], true, ii/up.length, jj/up[ii].length)}
+      }
+      
+      function draw_mesh_down(down, ii, jj){
+	  if( down[ii][jj] === undefined)
+	  {
+	      console.log("mesh no down[" + ii + "][" + jj + "]");
+	  }
+	  else draw_trigon(down[ii][jj], false, ii/down.length, jj/down[ii].length);
+      }
+      
+      function draw_mesh(mesh) {
 	  // TODO: take into account the special properties of trigons,
 	  //   such as water and rivers
+	  var up = mesh.up;
+	  var down = mesh.down;
+	  
 	  for(var ii = 0; ii < up.length; ++ii) {
 	      for (var jj = 0; jj < up[ii].length; ++jj){
+		  
 		  //triangle(up[ii][jj].vertices, [0.0, 1.0, 0.0, 1.0]);
-		  if( up[ii][jj] === undefined)
-		  {
-		      // console.log("mesh no up[" + ii + "][" + jj + "]");
-		  }
-		  else {draw_trigon(up[ii][jj], true)}
+		  draw_mesh_up(up, ii, jj)
 	      }
 	  }
-
+	  
 	  for(var ii = 0; ii < down.length; ++ii) {
 	      for (var jj = 0; jj < down[ii].length; ++jj){
-		  if( down[ii][jj] === undefined)
-		  {
-		      // console.log("mesh no down[" + ii + "][" + jj + "]");
-		  }
-		  else draw_trigon(down[ii][jj], false);
+		  draw_mesh_down(down, ii, jj);
 	      }
 	  }
       }
       
-//      draw_mesh(up, down);
-
       
       // Now make the initial triangle array
 
@@ -263,51 +308,77 @@ So says the tutorial.  But what is the "bind point" resulting from the following
         Each triangle has three vertices
             A vertex has x, y, and z coordinates
 	and water, which is true or false
-        and, if it is an up0triangle,
-          three edges which are in or out.
+        and three edges which are in or out.
 	Vertices are numbered counterclockwise
-          from the "top" vertex
-          (or the ottom vertex of a down triangle)
-
+          from the "top" vertex of an "up" triangle
+          or the ottom vertex of a down triangle
+	edge i goes from vertex i to vertex i+1 (modulo 3)
+	"up" triangles also have a sidle value on each edge,
+          chosen rendomly, and used to break ties between adjacent triangles.
+          Note that the neighbours of up triangles are always down triangles.
+	  (this will require change if we ever implement Mobius-strip worlds)
       */
 
       function randbool(){return Math.random() >= 0.5; }
 
+      function adjacent(up, down, i, j, k, l, e){
+	  // i, j are the indices of an up triangle.
+	  // k, l are indices of a down triangle.
+	  // They face each other along edge e.
+	  return(
+	      (e == 0 && j == l && i == k+1)
+		  || (e == 1 && i ==k && j == l-1)
+		  || (e == 2 && i == k && j == l));
+	  //      TODO: look at vertex coordinates
+      }
+	  
+      function transfer_river(up, down, i, j, k, l, e){
+	  // i, j are the indices of an up triangle.
+	  // k, l are indices of a down triangle.
+	  // They face each other along edge e.
+	  
+	  // TODO: for debugging, an adjacency check?
+	  if ( ! adjacent(up, down,i, j, k, l, e) )
+	  { console.log("transfer_river gets nonadjacent river banks"
+			+ i + " " + j + " " + k + " " + l + " " + e + ".");
+	  }
+	  else {
+	      
+	      if(down[k] === undefined || down[k][l] === undefined || down[k][l].edges === undefined
+		 || up[i] === undefined || up[i][j] === undefined || up[i][j].edges === undefined)
+	      {}
+	      else {
+		  if(down[k][l].edges[e] || up[i][j].edges[e]){
+		      console.log("down["+k+"]["+l+"].edges["+e+"] is "+down[k][l].edges[e]+ "; up["+i+"]["+j+"].edges["+e+"] is "+up[i][j].edges[e]);
+		  }
+		  var r = down[k][l].edges[e] || up[i][j].edges[e];
+		  down[k][l].edges[e] = r;
+		  up[i][j].edges[e] = r;
+		  //	      down[k][l].edges[e] |= up[i][j].edges[e];
+		  //	      up[i][j].edges[e] |= down[k][l].edges[e]
+	      }
+	  }
+      }
+
+      
       function transfer_rivers(up, down){
+	  // I think this is wrong, in that it pairs edges up wrong.
 	  for(var i = 0; i < up.length; i++){
 	      for(var j = 0; j < up[i].length; j++){
 		  if(up[i][j] === undefined){
 		  }
 		  else{
-		      if(down[i-1] === undefined || down[i-1][j] === undefined)
-		      {}
-		      else {
-			  console.log("d["+(i-1)+"]["+j+"] gets"+up[i][j].edges[0]+ " from up["+i+"]["+j+"].edges[0]");
-/*<><>*/		  down[i-1][j].edges[0] |= up[i][j].edges[0];
-			  up[i][j].edges[0] |= down[i-1][j].edges[0]
-		      }
-
-		      if(down[i] === undefined ||down[i][j+1] === undefined)
-		      {}
-		      else {
-			  down[i][j+1].edges[1] |= up[i][j].edges[1];
-			  up[i][j].edges[1] |= down[i][j+1].edges[1];
-		      }
-
-		      if(down[i] === undefined || down[i][j] === undefined){}
-		      else {
-			  down[i][j].edges[2] |= up[i][j].edges[2];
-			  up[i][j].edges[2] |= down[i][j].edges[2];
-		      }
+		      transfer_river(up, down, i, j, i-1, j  , 0);
+		      transfer_river(up, down, i, j, i  , j+1, 1);
+		      transfer_river(up, down, i, j, i  , j  , 2);
 		  }
 	      }
 	  }
       }
 
-      function initial_mesh(){
+      function initial_mesh(gridsize){
 	  const sqrt3 = 1.73205081;
-
-	  const gridsize = 3;
+	  
 	  var up = new Array(gridsize);
 	  var down = new Array(gridsize)
 	  for(var i = 0; i < gridsize; i++) {
@@ -342,28 +413,39 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	      }
 	  }
 	  
+	  if(test_rivers){	  // test case:
+	      down[1][1].edges[2] = true;
+	  }
+	  // end of test case
+	  else {
+	      
+	      up[0][0].edges[2] = true;
+	      down[0][0].edges[2] = true;
+	      
+	      up[2][0].edges[1] = true;
+	      down[2][1].edges[1] = true;
+	      
+	      up[1][1].edges[0] = true;
+	      down[0][1].edges[0] = true;
+	      
+	      up[2][2].edges[0] = true;
+	      down[1][2].edges[0] = true;
+	  }
 	  
-//	  up[0][0].edges[2] = true;
-//	  up[2][0].edges[1] = true;
-	  //	  up[1][2].edges[0] = true;
-	  up[1][1].edges[0] = true;
-	  down[0][1].edges[0] = true;
-//	  up[2][2].edges[2] = true;
-
 	  down[2][0].water = true;
 	  up[0][2].water = true;
+	  
 	  transfer_rivers(up, down);
 	  return  {up : up, down : down, icount: 3, jcount: 3};
       }
-      //      draw_mesh(up, down);
-
+      
       /*
        Mesh refinement.
        Let's say a mesh is an object with an up and a down.
        Calculate a new mesh.  Caller rovides an empty mesh.
       */
       
-      var test_mesh = initial_mesh();
+      var test_mesh = initial_mesh(3);
       // icount and h=jcount are the limits for subscripts on up and down.
 
       function averagevertex(v){ // v is an array of three vertices
@@ -381,35 +463,37 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	  return  [ q[0]*2 - p[0],
 		    q[1]*2 - p[1],
 		    q[2]*2 - p[2]
-		  ]
+		  ];
       }
       
       function refine(old){
 	  // old is the old mesh, new will be the new mesh.
 
 	  var mesh = new Object();
-	  var icount = 2 + old.icount + old.jcount;
-	  var jcount = 1 + old.icount + 2 * old.jcount;
+	  var icount = old.icount + old.jcount;
+	  var jcount = 2 * (old.icount + old.jcount) -3;
 	  var up = new Array(icount)
 	  var down = new Array(icount)
-	  for(var ii = 0; ii < icount; ++ii){
-	      up[ii] = new Array(jcount);
-	      down[ii] = new Array(jcount);
+	  for(var i = 0; i < icount; ++i){
+	      up[i] = new Array(jcount);
+	      down[i] = new Array(jcount);
 	  }
-	  console.log("new limits " + icount + " " + jcount)
-	  for(var i = 0; i < old.icount; ++i) {
+	  console.log("new limits " + icount + " " + jcount + " a:" + 0 + " b:" + (old.icount - 1));
+	  for(var i = 0; i < old.icount; ++i)
+	  {
 	      for(var j = 0; j < old.jcount; j++){
-		  oldtre = old.up[i][j];
+		  var oldtre = old.up[i][j];
 		  if(oldtre === undefined){
-		      // mising entry -- the arrays aren't full.
+		      // missing entry -- the arrays aren't full.
 		  }
 		  else {
-		      centre = averagevertex(oldtre.vertices);
-
+		      var centre = averagevertex(oldtre.vertices);
+		      console.log("old.icount was " + old.icount + " i " + i + "; j " + j);
 		      var a = 0, b = old.icount - 1;
 		      
-		      var ii = a + i + 2*j;
-		      var jj = b - i + j;
+		      var ii = a + i + j;
+		      var jj = b - i + j + j;
+		      //  formerly var jj = b - i + j;
 		      
 		      
 		      /* Need 0 <= ii < icount
@@ -418,12 +502,61 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 		       . for all 0 <= j < old,jcount
 		       . This determines\d a and b for the definitions of ii and jj.
 		      */
-		      
+
+		      function overedge( s0, s1, s2, newupi, newupj, newdowni, newdownj){
+			  /* e.g.
+			   overedge(0, 1, 2, ii, jj, ii, jj+1)
+			   overedge(1, 2, 0, ii+1, jj+1, ii+1, jj+1);
+			   overedge(2, 0, 1, ii+1, jj, ii, jj);
+			  */
+			  
+			  if (up[newupi] === undefined)
+			  { console.log("up[" + newupi + "] undefined for i " + i + " j " + j); }
+			  else
+			  {
+			      console.log("   make up " + newupi + " " + newupj);
+			      up[newupi][newupj] = new Object();
+			      down[newdowni][newdownj] = new Object();
+			      up[newupi][newupj].sidle = [randbool(), randbool(), randbool()];
+
+			      up[newupi][newupj].vertices = new Array(3);
+			      up[newupi][newupj].vertices[s2] = centre;
+			      up[newupi][newupj].vertices[s0] = oldtre.vertices[s0];
+			      up[newupi][newupj].vertices[s1] =
+				  leapfrog(oldtre.vertices[s2], centre);
+
+			      console.log("   make up " + newdowni + " " + newdownj);
+			      
+			      down[newdowni][newdownj].vertices = new Array(3);
+			      down[newdowni][newdownj].vertices[s0] = oldtre.vertices[s1];
+			      down[newdowni][newdownj].vertices[s1] = centre;
+			      down[newdowni][newdownj].vertices[s2] =
+				  leapfrog(oldtre.vertices[s2], centre);
+
+			      up[newupi][newupj].edges = [false, false, false];
+			      down[newdowni][newdownj].edges = [false, false, false];
+			      if(oldtre.edges[s0]){
+				  if(oldtre.sidle[s0])
+				  { up[newupi][newupj].edges[s2] = true;
+				    down[newdowni][newdownj].edges[s0] = true;
+				  }
+				  else{
+				      up[newupi][newupj].edges[s0] = true;
+				      down[newdowni][newdownj].edges[s2] = true;
+				  }
+			      }
+
+			  }
+		      }
+
+      console.log("From " + i + " " + j + "to ii jj: " + ii + " " + jj);
+		      overedge(0, 1, 2, ii, jj, ii, jj+1);
+		/*	      
 		      if(up[ii] === undefined)
-		      { console.log("up[" + ii + "] undefined for i " + i + " j " + j)
+		      { 
 		      } else{
 			  up  [ii][    jj     ] = new Object();
-			  down[ii][    jj + 1 ] = new Object;
+			  down[ii][    jj + 1 ] = new Object();
 			  up  [ii][    jj     ].sidle =
 			      [randbool(), randbool(), randbool()]
 			  
@@ -439,7 +572,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 			  down[ii][    jj + 1 ].vertices[2] =
 			      leapfrog(oldtre.vertices[2], centre);
 			  down[ii][    jj + 1 ].sidle = new Array(3);
-
+			  
 			  up[ii][jj].edges = [false, false, false];
 			  down[ii][jj + 1].edges = [false, false, false];
 			  if(oldtre.edges[0]){
@@ -453,10 +586,16 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 			      }
 			  }
 		      }
+
+		*/
+
+		      overedge(1, 2, 0, ii+1, jj+1, ii+1, jj+1);
 		      
+/*
+
 		      void up[ii + 1];
-		      if(up[ii + 1] === undefined)
-		      {console.log("up[" + ii + " + 1] undefined for i " + i + " j " + j);}
+		      if(up[ii + 1] === undefined){
+			  console.log("up[" + ii + " + 1] undefined for i " + i + " j " + j);}
 		      else{
 			  up  [ii + 1][jj + 1 ] = new Object();
 			  down[ii + 1][jj + 1 ] = new Object;
@@ -474,7 +613,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 			  down[ii + 1][jj + 1 ].vertices[2] = centre;
 			  down[ii + 1][jj + 1 ].vertices[0] =
 			      leapfrog(oldtre.vertices[0], centre);
-			  down[ii + 1][jj + 1 ].sidle = new Array(3);			  
+			  
 			  up[ii + 1][jj + 1].edges = [false, false, false];
 			  down[ii + 1][jj + 1].edges =  [false, false, false];
 			  if(oldtre.edges[1]){
@@ -487,11 +626,17 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 				  down[ii + 1][jj + 1].edges[0] = true;
 			      }
 			  }
-			  
+		      }
+
+		      */
+		      overedge(2, 0, 1, ii+1, jj, ii, jj);
+
+		      /*      
 			  up  [ii + 1][jj     ] = new Object();
 			  down[ii    ][jj     ] = new Object;
 			  up  [ii + 1][jj     ].sidle =
 			      [randbool(), randbool(), randbool()]
+			  
 			  up  [ii + 1][jj     ].vertices = new Array(3);
 			  up  [ii + 1][jj     ].vertices[1] = centre;
 			  up  [ii + 1][jj     ].vertices[2] = oldtre.vertices[2];
@@ -503,34 +648,38 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 			  void down[ii];
 			  // console.log("down[ii]", down[ii]);
 			  // console.log("second length ", down[ii].length);
-			  void down[ii, jj];
-			  // console.log("down[ii, jj] ", down[ii][jj]);
-			  void down[ii, jj].vertices;
-			  down[ii    ][jj     ].vertices = new Array(3);
-			  down[ii    ][jj     ].vertices[2] = oldtre.vertices[0];
-			  down[ii    ][jj     ].vertices[0] = centre;
-			  down[ii    ][jj     ].vertices[1] =
-			      leapfrog(oldtre.vertices[1], centre);;
-			  down[ii    ][jj     ].sidle = new Array(3);
-
-			  up[ii + 1][jj].edges =  [false, false, false];
-			  down[ii][jj].edges =  [false, false, false];
-
-			  if(oldtre.edges[2]){
-			      if(oldtre.sidle[1])
-			      { up[ii + 1][jj].edges[1] = true;
-				down[ii][jj].edges[2] = true;
-			      }
-			      else{
-				  up[ii + 1][jj].edges[2] = true;
-				  down[ii][jj].edges[1] = true;
+			  if(down[ii, jj] === undefined)
+			  {
+			      console.log("ii: " + ii + "; jj: " + jj + "; from i " + i + "; j" + j)
+			      // console.log("down[ii, jj] ", down[ii][jj]);
+			  }
+			  else{
+			      down[ii, jj].vertices;
+			      down[ii    ][jj     ].vertices = new Array(3);
+			      down[ii    ][jj     ].vertices[2] = oldtre.vertices[0];
+			      down[ii    ][jj     ].vertices[0] = centre;
+			      down[ii    ][jj     ].vertices[1] =
+				  leapfrog(oldtre.vertices[1], centre);;
+			      down[ii    ][jj     ].sidle = new Array(3);
+			      
+			      up[ii + 1][jj].edges =  [false, false, false];
+			      down[ii][jj].edges =  [false, false, false];
+			      
+			      if(oldtre.edges[2]){
+				  if(oldtre.sidle[2])
+				  { up[ii + 1][jj].edges[1] = true;
+				    down[ii][jj].edges[2] = true;
+				  }
+				  else{
+				      up[ii + 1][jj].edges[2] = true;
+				      down[ii][jj].edges[1] = true;
+				  }
 			      }
 			  }
 			  
-		      }
-
-		      
+*/
 		  }
+		      
 	      }
 	  }
 
@@ -543,15 +692,37 @@ So says the tutorial.  But what is the "bind point" resulting from the following
       
       var refined_mesh = test_mesh;
       refined_mesh = refine(refined_mesh);
+//      refined_mesh = refine(refined_mesh);
+      // BUG: second refinement seems to detach rivers from shore.
+      // Is this maybe because my ocean isn't showing?
+      
+//      refined_mesh = refine(refined_mesh);      
+/*
       if(refined_mesh.up[0] === undefined)
-      { console.log("refined_mesh[0] undefined");}
+        { console.log("refined_mesh[0] undefined");}
       else{
-	  draw_trigon(refined_mesh.up[0][1]);
+	  draw_trigon(refined_mesh.up[0][1], 0.5, 0.5);
       }
-//      draw_trigon(refined_mesh.up[1][1]);
-//    draw_trigon(refined_mesh.up[2,2]);
-//      draw_trigon(refined_mesh.up[3,3]);
-     draw_mesh(refined_mesh.up, refined_mesh.down);
+ */
+      //      draw_trigon(refined_mesh.up[1][1]);
+      //    draw_trigon(refined_mesh.up[2,2]);
+      //      draw_trigon(refined_mesh.up[3,3]);
+
+      if(false){
+	  draw_mesh_up(refined_mesh.up, 1,1);
+	  draw_mesh_down(refined_mesh.down, 1, 1);
+	  draw_mesh_up(refined_mesh.up, 2,1);
+	  draw_mesh_down(refined_mesh.down, 2, 1);
+	  draw_mesh_up(refined_mesh.up, 1,2);
+	  draw_mesh_down(refined_mesh.down, 1, 2);
+	  draw_mesh_up(refined_mesh.up, 0, 2);
+	  draw_mesh_down(refined_mesh.down, 0, 2);
+	  draw_mesh_up(refined_mesh.up, 0, 3);
+	  draw_mesh_down(refined_mesh.down, 0, 3);
+      }
+      else 
+	  draw_mesh(refined_mesh);
+
     </script>
     cooo, cooo
     

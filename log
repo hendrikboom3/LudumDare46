@@ -33,5 +33,33 @@ Now the location test.  Done by choosing colours for triabnges base on their arr
 at Apr 18 10:46:45 EDT 2020
 
 It passes the locatino test.
-So what could be screwing up my rives?
+So what could be screwing up my rivers?
 
+Answer:  The refinement isn't srewing up the revers.
+But in the initial unrefined mapm there's one only river, and it's
+entirely landlocked.  So it's no surprise that the refined river is also landlaocked and therefore looks impossible.
+
+No, there's a real problem.  Under some circumstances, the 'other side' of a river along a side up triangle, when refined, gets the two sides of the refined river attached in quite differenc place, apparently shifted over horizontally by two triangles.
+
+It's starting to look s if the coordinate system I have on a piece of paper is not the coordinate system the computer is using, jujdging from what the trace says it put on the map vs what those coordinates say on my piece of paper.
+
+Yes, that's a problem.  It means that me checking the code against my visual understanding does not work.
+
+Now:  Just what are teh real coordinates?
+
+
+2020 04 19
+
+Finally got that bug fixed!
+
+Here's what was going on.
+
+The the triangle refinement uses three coordinate systems:
+
+The array indices into the arrays of large triangles.
+The array indices into the arrays of new small triangles.
+The actual screen coordinates.
+
+Somehow, the coordinate transformation between the arrays of large triangles and the arrays of small triangles was wrong.  This didn't affect the raw displays of triangles on the screen, because the screen coordinates were still calculated correctly.  But when the function that mapped river banks from one side of the river (on one triangle) to the other side of the river (on another triangle), it used array indices to find the adjacent triangle.  And that was oftern the wrong triangle by screen coordinates.
+
+Time for a break.
