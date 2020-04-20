@@ -60,6 +60,12 @@ The array indices into the arrays of large triangles.
 The array indices into the arrays of new small triangles.
 The actual screen coordinates.
 
-Somehow, the coordinate transformation between the arrays of large triangles and the arrays of small triangles was wrong.  This didn't affect the raw displays of triangles on the screen, because the screen coordinates were still calculated correctly.  But when the function that mapped river banks from one side of the river (on one triangle) to the other side of the river (on another triangle), it used array indices to find the adjacent triangle.  And that was oftern the wrong triangle by screen coordinates.
+Somehow, the coordinate transformation between the arrays of large triangles and the arrays of small triangles was wrong.  This didn't affect the raw displays of triangles on the screen, because the screen coordinates were still calculated correctly.  But when the function that mapped river banks from one side of the river (on one triangle) to the other river ank on the other side of the river (on another triangle), it used array indices to find the adjacent triangle.  And that was often the wrong triangle by screen coordinates.
 
-Time for a break.
+While I was working on this, I have refactored a fair amount of similar code, to avoid the possibility that in different (not-quite) copies of some tricky ode I accidentally had errors in a few of the copies.  That turned out not to be the case, but the code did become more elegant as a result.  Not necessarily clearer, though.
+
+A lot of the vestigial code is still hanging around in comments.
+
+-- hendrik
+
+
