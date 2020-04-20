@@ -45,6 +45,7 @@
       var debug_orientation = false;
       var debug_location = false;
       var test_rivers = false;
+      var trace_mesh_draw = false;
 
       // Now following the documentation at https://webglfundamentals.org/
       // Allegedly WebGL from the ground up. No magic.
@@ -267,7 +268,8 @@ So says the tutorial.  But what is the "bind point" resulting from the following
       function draw_mesh_up(up, ii, jj){
  	  if( up[ii][jj] === undefined)
 	  {
-	      console.log("mesh no up[" + ii + "][" + jj + "]");
+	      if(trace_mesh_draw)
+		  console.log("mesh no up[" + ii + "][" + jj + "]");
 	  }
 	  else {draw_trigon(up[ii][jj], true, ii/up.length, jj/up[ii].length)}
       }
@@ -275,7 +277,8 @@ So says the tutorial.  But what is the "bind point" resulting from the following
       function draw_mesh_down(down, ii, jj){
 	  if( down[ii][jj] === undefined)
 	  {
-	      console.log("mesh no down[" + ii + "][" + jj + "]");
+	      if(trace_mesh_draw)
+		  console.log("mesh no down[" + ii + "][" + jj + "]");
 	  }
 	  else draw_trigon(down[ii][jj], false, ii/down.length, jj/down[ii].length);
       }
@@ -301,23 +304,6 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	  }
       }
       
-      
-      // Now make the initial triangle array
-
-      /*
-        Each triangle has three vertices
-            A vertex has x, y, and z coordinates
-	and water, which is true or false
-        and three edges which are in or out.
-	Vertices are numbered counterclockwise
-          from the "top" vertex of an "up" triangle
-          or the ottom vertex of a down triangle
-	edge i goes from vertex i to vertex i+1 (modulo 3)
-	"up" triangles also have a sidle value on each edge,
-          chosen rendomly, and used to break ties between adjacent triangles.
-          Note that the neighbours of up triangles are always down triangles.
-	  (this will require change if we ever implement Mobius-strip worlds)
-      */
 
       function randbool(){return Math.random() >= 0.5; }
 
@@ -348,9 +334,11 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 		 || up[i] === undefined || up[i][j] === undefined || up[i][j].edges === undefined)
 	      {}
 	      else {
-		  if(down[k][l].edges[e] || up[i][j].edges[e]){
+		  /*
+if(down[k][l].edges[e] || up[i][j].edges[e]){
 		      console.log("down["+k+"]["+l+"].edges["+e+"] is "+down[k][l].edges[e]+ "; up["+i+"]["+j+"].edges["+e+"] is "+up[i][j].edges[e]);
-		  }
+		  */
+
 		  var r = down[k][l].edges[e] || up[i][j].edges[e];
 		  down[k][l].edges[e] = r;
 		  up[i][j].edges[e] = r;
@@ -376,7 +364,28 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	  }
       }
 
+      
+      // Now make the initial triangle array
+
+      /*
+        Each triangle has three vertices
+            A vertex has x, y, and z coordinates
+	and water, which is true or false
+        and three edges which are in or out.
+	Vertices are numbered counterclockwise
+          from the "top" vertex of an "up" triangle
+          or the ottom vertex of a down triangle
+	edge i goes from vertex i to vertex i+1 (modulo 3)
+	"up" triangles also have a sidle value on each edge,
+          chosen rendomly, and used to break ties between adjacent triangles.
+          Note that the neighbours of up triangles are always down triangles.
+	  (this will require change if we ever implement Mobius-strip worlds)
+      */
+
       function initial_mesh(gridsize){
+	  // The gridsize parameter must be exactly 3 for the river placement
+	  // at the end of this funcion to work properly,
+	  // TODO: clean this up.
 	  const sqrt3 = 1.73205081;
 	  
 	  var up = new Array(gridsize);
@@ -478,7 +487,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 	      up[i] = new Array(jcount);
 	      down[i] = new Array(jcount);
 	  }
-	  console.log("new limits " + icount + " " + jcount + " a:" + 0 + " b:" + (old.icount - 1));
+	  // console.log("new limits " + icount + " " + jcount + " a:" + 0 + " b:" + (old.icount - 1));
 	  for(var i = 0; i < old.icount; ++i)
 	  {
 	      for(var j = 0; j < old.jcount; j++){
@@ -488,7 +497,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 		  }
 		  else {
 		      var centre = averagevertex(oldtre.vertices);
-		      console.log("old.icount was " + old.icount + " i " + i + "; j " + j);
+		      // console.log("old.icount was " + old.icount + " i " + i + "; j " + j);
 		      var a = 0, b = old.icount - 1;
 		      
 		      var ii = a + i + j;
@@ -504,17 +513,12 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 		      */
 
 		      function overedge( s0, s1, s2, newupi, newupj, newdowni, newdownj){
-			  /* e.g.
-			   overedge(0, 1, 2, ii, jj, ii, jj+1)
-			   overedge(1, 2, 0, ii+1, jj+1, ii+1, jj+1);
-			   overedge(2, 0, 1, ii+1, jj, ii, jj);
-			  */
-			  
 			  if (up[newupi] === undefined)
-			  { console.log("up[" + newupi + "] undefined for i " + i + " j " + j); }
+			  { // console.log("up[" + newupi + "] undefined for i " + i + " j " + j);
+			  }
 			  else
 			  {
-			      console.log("   make up " + newupi + " " + newupj);
+			      // console.log("   make up " + newupi + " " + newupj);
 			      up[newupi][newupj] = new Object();
 			      down[newdowni][newdownj] = new Object();
 			      up[newupi][newupj].sidle = [randbool(), randbool(), randbool()];
@@ -525,7 +529,7 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 			      up[newupi][newupj].vertices[s1] =
 				  leapfrog(oldtre.vertices[s2], centre);
 
-			      console.log("   make up " + newdowni + " " + newdownj);
+			      // console.log("   make up " + newdowni + " " + newdownj);
 			      
 			      down[newdowni][newdownj].vertices = new Array(3);
 			      down[newdowni][newdownj].vertices[s0] = oldtre.vertices[s1];
@@ -549,135 +553,14 @@ So says the tutorial.  But what is the "bind point" resulting from the following
 			  }
 		      }
 
-      console.log("From " + i + " " + j + "to ii jj: " + ii + " " + jj);
-		      overedge(0, 1, 2, ii, jj, ii, jj+1);
-		/*	      
-		      if(up[ii] === undefined)
-		      { 
-		      } else{
-			  up  [ii][    jj     ] = new Object();
-			  down[ii][    jj + 1 ] = new Object();
-			  up  [ii][    jj     ].sidle =
-			      [randbool(), randbool(), randbool()]
-			  
-			  up  [ii][    jj     ].vertices = new Array(3);
-			  up  [ii][    jj     ].vertices[2] = centre;
-			  up  [ii][    jj     ].vertices[0] = oldtre.vertices[0];
-			  up  [ii][    jj     ].vertices[1] =
-			      leapfrog(oldtre.vertices[2], centre);
-			  
-			  down[ii][    jj + 1 ].vertices = new Array(3);
-			  down[ii][    jj + 1 ].vertices[0] = oldtre.vertices[1];
-			  down[ii][    jj + 1 ].vertices[1] = centre;
-			  down[ii][    jj + 1 ].vertices[2] =
-			      leapfrog(oldtre.vertices[2], centre);
-			  down[ii][    jj + 1 ].sidle = new Array(3);
-			  
-			  up[ii][jj].edges = [false, false, false];
-			  down[ii][jj + 1].edges = [false, false, false];
-			  if(oldtre.edges[0]){
-			      if(oldtre.sidle[0])
-			      { up[ii][jj].edges[2] = true;
-				down[ii][jj + 1].edges[0] = true;
-			      }
-			      else{
-				  up[ii][jj].edges[0] = true;
-				  down[ii][jj + 1].edges[2] = true;
-			      }
-			  }
-		      }
 
-		*/
+		      // console.log("From " + i + " " + j + "to ii jj: " + ii + " " + jj);
+		      overedge(0, 1, 2, ii, jj, ii, jj+1);
 
 		      overedge(1, 2, 0, ii+1, jj+1, ii+1, jj+1);
 		      
-/*
-
-		      void up[ii + 1];
-		      if(up[ii + 1] === undefined){
-			  console.log("up[" + ii + " + 1] undefined for i " + i + " j " + j);}
-		      else{
-			  up  [ii + 1][jj + 1 ] = new Object();
-			  down[ii + 1][jj + 1 ] = new Object;
-			  up  [ii + 1][jj + 1 ].sidle =
-			      [randbool(), randbool(), randbool()]
-			  
-			  up  [ii + 1][jj + 1 ].vertices = new Array(3);
-			  up  [ii + 1][jj + 1 ].vertices[0] = centre;
-			  up  [ii + 1][jj + 1 ].vertices[1] = oldtre.vertices[1];
-			  up  [ii + 1][jj + 1 ].vertices[2] =
-			      leapfrog(oldtre.vertices[0], centre);
-			  
-			  down[ii + 1][jj + 1 ].vertices = new Array(3);
-			  down[ii + 1][jj + 1 ].vertices[1] = oldtre.vertices[2];
-			  down[ii + 1][jj + 1 ].vertices[2] = centre;
-			  down[ii + 1][jj + 1 ].vertices[0] =
-			      leapfrog(oldtre.vertices[0], centre);
-			  
-			  up[ii + 1][jj + 1].edges = [false, false, false];
-			  down[ii + 1][jj + 1].edges =  [false, false, false];
-			  if(oldtre.edges[1]){
-			      if(oldtre.sidle[1])
-			      { up[ii + 1][jj + 1].edges[0] = true;
-				down[ii + 1][jj + 1].edges[1] = true;
-			      }
-			      else{
-				  up[ii + 1][jj + 1].edges[1] = true;
-				  down[ii + 1][jj + 1].edges[0] = true;
-			      }
-			  }
-		      }
-
-		      */
 		      overedge(2, 0, 1, ii+1, jj, ii, jj);
 
-		      /*      
-			  up  [ii + 1][jj     ] = new Object();
-			  down[ii    ][jj     ] = new Object;
-			  up  [ii + 1][jj     ].sidle =
-			      [randbool(), randbool(), randbool()]
-			  
-			  up  [ii + 1][jj     ].vertices = new Array(3);
-			  up  [ii + 1][jj     ].vertices[1] = centre;
-			  up  [ii + 1][jj     ].vertices[2] = oldtre.vertices[2];
-			  up  [ii + 1][jj     ].vertices[0] =
-			      leapfrog(oldtre.vertices[1], centre);
-			  // console.log("try down " + ii + " " + jj);
-			  void down;
-			  // console.log("first length ", down.length);
-			  void down[ii];
-			  // console.log("down[ii]", down[ii]);
-			  // console.log("second length ", down[ii].length);
-			  if(down[ii, jj] === undefined)
-			  {
-			      console.log("ii: " + ii + "; jj: " + jj + "; from i " + i + "; j" + j)
-			      // console.log("down[ii, jj] ", down[ii][jj]);
-			  }
-			  else{
-			      down[ii, jj].vertices;
-			      down[ii    ][jj     ].vertices = new Array(3);
-			      down[ii    ][jj     ].vertices[2] = oldtre.vertices[0];
-			      down[ii    ][jj     ].vertices[0] = centre;
-			      down[ii    ][jj     ].vertices[1] =
-				  leapfrog(oldtre.vertices[1], centre);;
-			      down[ii    ][jj     ].sidle = new Array(3);
-			      
-			      up[ii + 1][jj].edges =  [false, false, false];
-			      down[ii][jj].edges =  [false, false, false];
-			      
-			      if(oldtre.edges[2]){
-				  if(oldtre.sidle[2])
-				  { up[ii + 1][jj].edges[1] = true;
-				    down[ii][jj].edges[2] = true;
-				  }
-				  else{
-				      up[ii + 1][jj].edges[2] = true;
-				      down[ii][jj].edges[1] = true;
-				  }
-			      }
-			  }
-			  
-*/
 		  }
 		      
 	      }
